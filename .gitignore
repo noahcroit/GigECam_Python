@@ -1,0 +1,9 @@
+#image file 
+*.jpg
+*.png
+
+#document file
+*.pdf
+
+#weight for deep neural net
+*.weights
