@@ -41,12 +41,15 @@ converter.OutputBitAlignment = pylon.OutputBitAlignment_MsbAligned
 
 
 ### Grab image loop
+grab_success_cnt = 0
 while camera.IsGrabbing():
     # read grab image's result from camera whether it's sucessful or not.
     grabResult = camera.RetrieveResult(5000, pylon.TimeoutHandling_ThrowException)
 
     # Success to grab image from GigE camera
     if grabResult.GrabSucceeded():
+        grab_success_cnt += 1
+        print("grab success : {}".format(grab_success_cnt))
         # Access the image data
         image = converter.Convert(grabResult)
         img = image.GetArray()
@@ -92,10 +95,10 @@ while camera.IsGrabbing():
                 cv2.rectangle(yolo_img, (x, y), (x + w, y + h), color, 2)
                 cv2.putText(yolo_img, label, (x, y + 30), font, 3, color, 3)
         cv2.imshow("Yolo image", yolo_img)
-
         k = cv2.waitKey(1)
         if k == 27:
             break
+        
     grabResult.Release()
 
 
