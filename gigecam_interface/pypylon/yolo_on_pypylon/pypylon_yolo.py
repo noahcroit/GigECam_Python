@@ -7,7 +7,7 @@ Tested on Basler basler a640 100 gm (GigE, window 64bit , python 3.7)
 from pypylon import pylon
 import cv2
 import numpy as np
-
+import time
 
 
 ### Yolo section ###
@@ -25,12 +25,16 @@ colors = np.random.uniform(0, 255, size=(len(classes), 3))
 #camera = pylon.InstantCamera(pylon.TlFactory.GetInstance().CreateFirstDevice())
 
 # connecting to the camera with specific IP
-ip_address = '192.168.2.110'
+ip_address = '192.168.3.110'
 info = pylon.DeviceInfo()
 info.SetPropertyValue('IpAddress', ip_address)
 camera = pylon.InstantCamera(pylon.TlFactory.GetInstance().CreateFirstDevice(info))
 
-# Grabing Continusely (video) with minimal delay
+# Set Inter-Packet Delay in the Transport Layer to control bandwidth of camera. If not set it properly, It will fail to grab the image.
+camera.Open()
+camera.GevSCPD.SetValue(9000)   # Set Inter-Packet Delay (In tick)
+
+# Grabing Continusely (video)
 camera.StartGrabbing(pylon.GrabStrategy_LatestImageOnly) 
 converter = pylon.ImageFormatConverter()
 
@@ -41,15 +45,13 @@ converter.OutputBitAlignment = pylon.OutputBitAlignment_MsbAligned
 
 
 ### Grab image loop
-grab_success_cnt = 0
 while camera.IsGrabbing():
     # read grab image's result from camera whether it's sucessful or not.
     grabResult = camera.RetrieveResult(5000, pylon.TimeoutHandling_ThrowException)
 
     # Success to grab image from GigE camera
     if grabResult.GrabSucceeded():
-        grab_success_cnt += 1
-        print("grab success : {}".format(grab_success_cnt))
+
         # Access the image data
         image = converter.Convert(grabResult)
         img = image.GetArray()
@@ -100,7 +102,7 @@ while camera.IsGrabbing():
             break
         
     grabResult.Release()
-
+    
 
 
 # Releasing the resource    
